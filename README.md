@@ -1,4 +1,4 @@
-# 深入理解 AI Agent：设计原理与工程实践
+# AI 에이전트를 깊이 이해하기: 설계 원리와 엔지니어링 실전
 
 [![PDF](https://img.shields.io/badge/PDF-%E4%B8%8B%E8%BD%BD-success.svg)](#-电子书) [![在线阅读](https://img.shields.io/badge/🌐_在线阅读-bojieli.github.io-success?style=flat-square)](https://bojieli.github.io/ai-agent-book/astro/) [![Stars](https://img.shields.io/github/stars/bojieli/ai-agent-book?style=social)](https://github.com/bojieli/ai-agent-book) [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE) [![Languages](https://img.shields.io/badge/翻译-15%20种%20语言-informational.svg)](#-电子书)
 [![Trending GitHub Project of the Day](https://img.shields.io/badge/GitHub%20Trending-Project%20of%20the%20Day-orange?logo=github)](https://github.com/trending)
@@ -18,11 +18,12 @@
 > 如果你看到的是旧版 PDF，建议[下载最新版 PDF](https://github.com/bojieli/ai-agent-book/releases/download/latest/AI-Agents-in-Depth-zh-CN.pdf)。新版还包含许多内容修正与调整，请以最新版为准。
 
 | 📚 **10 章** 正文，从基础到生产 | 📂 **109 个** 配套实验（含本地项目与外部复现轨道） | 🌐 **15 种** 语言：中 / 英 / 西 / 印尼 / 阿 / 繁體中文（台灣） / 俄 / 泰米尔 / 越 / 日 / 土耳其 / 韩 / 匈牙利 / 希伯来 / 葡萄牙语（巴西） |
-| :---: | :---: | :---: |
+| :-----------------------------: | :------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------: |
 
 ## 📖 电子书
 
 > 📥 **离线下载**（推荐，全书正文，开源免费）。以下链接始终指向 main 分支的最新构建；固定版本见 [Releases](https://github.com/bojieli/ai-agent-book/releases)：
+>
 > - **中文（原版）**：[PDF](https://github.com/bojieli/ai-agent-book/releases/download/latest/AI-Agents-in-Depth-zh-CN.pdf) · [EPUB](https://github.com/bojieli/ai-agent-book/releases/download/latest/AI-Agents-in-Depth-zh-CN.epub)
 > - **英文**（社区翻译，by [@nsdevaraj](https://github.com/nsdevaraj)、[@whanyu1212](https://github.com/whanyu1212)）：[PDF](https://github.com/bojieli/ai-agent-book/releases/download/latest/AI-Agents-in-Depth-en.pdf) · [EPUB](https://github.com/bojieli/ai-agent-book/releases/download/latest/AI-Agents-in-Depth-en.epub)
 > - **西班牙语**（社区翻译，by [@santhreal](https://github.com/santhreal)）：[PDF](https://github.com/bojieli/ai-agent-book/releases/download/latest/AI-Agents-in-Depth-es.pdf) · [EPUB](https://github.com/bojieli/ai-agent-book/releases/download/latest/AI-Agents-in-Depth-es.epub)
@@ -44,61 +45,72 @@
 中文正文源码位于 [`book/`](book/)；英文/西班牙语/印度尼西亚语/阿拉伯语/繁體中文（台灣）/俄语/泰米尔/越南语/日语/土耳其语/韩语/匈牙利语/希伯来语/葡萄牙语（巴西）版本为社区贡献（可能滞后于中文原版），分别位于 [`book-en/`](book-en/)、[`book-es/`](book-es/)、[`book-id/`](book-id/)、[`book-ar/`](book-ar/)、[`book-zhtw/`](book-zhtw/)、[`book-ru/`](book-ru/)、[`book-ta/`](book-ta/)、[`book-vi/`](book-vi/)、[`book-ja/`](book-ja/)、[`book-tr/`](book-tr/)、[`book-ko/`](book-ko/)、[`book-hu/`](book-hu/)、[`book-he/`](book-he/)、[`book-ptbr/`](book-ptbr/)。
 
 <details>
-<summary><b>🔧 想自行编译 PDF / EPUB？</b>（PDF 需 pandoc / xelatex / ElegantBook）</summary>
+<summary><b>🔧 PDF / EPUB를 직접 빌드하려면?</b> (PDF는 pandoc / xelatex / ElegantBook 필요)</summary>
 
-- **EPUB**：使用统一的构建脚本，详情请参阅 [EPUB 构建说明](EPUB.md)
-- **正文源码**：`book/introduction.md`（引言）、`book/chapter1.md` ~ `book/chapter10.md`（第一至第十章）、`book/afterword.md`（后记）
-- **编译**：安装 pandoc、xelatex、ElegantBook 文档类与相关字体后，运行
+- **EPUB**: 공통 빌더를 사용합니다. 자세한 내용은 [EPUB 빌드 안내](EPUB.md)를 참고하세요
+- **본문 소스**: `book-ko/introduction.ko.md`, `book-ko/chapter1.ko.md` ~ `book-ko/chapter10.ko.md`, `book-ko/afterword.ko.md`
+- **빌드**: pandoc, xelatex, ElegantBook 문서 클래스와 Noto CJK KR 글꼴을 설치한 뒤 다음을 실행합니다.
 
   ```bash
-  cd book && bash build_pdf.sh
+  cd book-ko && bash build_pdf.sh
   ```
 
-  图表以 SVG 文件存于 `book/images/`，编译时直接使用；排版细节见 `book/preamble.tex` 与 `book/*.lua`。
+  그림은 `book-ko/images/`의 SVG 파일을 사용합니다. 조판 설정은 `book-ko/preamble.tex`와 `book-ko/*.lua`에서 확인할 수 있습니다.
 
 </details>
 
-## 📑 内容速览（第 1–10 章）
+## 📑 한눈에 보는 구성
 
-全书围绕核心公式 **Agent = LLM + 上下文 + 工具** 展开，十章层层递进：
+| 장  | 주제                               | 핵심 내용                                                                |              본문               |            코드             |
+| :-: | ---------------------------------- | ------------------------------------------------------------------------ | :-----------------------------: | :-------------------------: |
+|  1  | 🚀 **AI 에이전트 기초**            | **에이전트 = LLM + 컨텍스트 + 도구**. 경쟁력의 핵심은 하네스 엔지니어링  | [읽기](book-ko/chapter1.ko.md)  | [4](chapter1/README.ko.md)  |
+|  2  | 🎯 **컨텍스트 엔지니어링**         | KV Cache, 프롬프트 엔지니어링, Agent Skills, 컨텍스트 압축               | [읽기](book-ko/chapter2.ko.md)  | [8](chapter2/README.ko.md)  |
+|  3  | 📚 **사용자 메모리와 지식 베이스** | 세션 간 사용자 메모리, RAG, 구조화 색인, 지식 그래프                     | [읽기](book-ko/chapter3.ko.md)  | [14](chapter3/README.ko.md) |
+|  4  | 🛠️ **도구**                        | MCP, 인식·실행·협업 도구, 이벤트 기반 비동기 에이전트, 능동적 도구 탐색  | [읽기](book-ko/chapter4.ko.md)  | [7](chapter4/README.ko.md)  |
+|  5  | 💻 **코딩 에이전트와 코드 생성**   | 코드는 새 도구를 만들 수 있는 도구. 프로덕션급 코딩 에이전트의 전체 구조 | [읽기](book-ko/chapter5.ko.md)  | [12](chapter5/README.ko.md) |
+|  6  | 🎯 **에이전트 평가**               | 평가 환경, 지표, 통계적 유의성, 평가 기반 선택                           | [읽기](book-ko/chapter6.ko.md)  | [17](chapter6/README.ko.md) |
+|  7  | 🧠 **모델 사후 학습**              | 사전 학습·SFT·RL, 도구 호출 내재화, 샘플 효율성                          | [읽기](book-ko/chapter7.ko.md)  | [18](chapter7/README.ko.md) |
+|  8  | 🔄 **에이전트의 지속적 진화**      | 실행 궤적에서 학습 신호를 얻고 지식·지침·프로그램·파라미터 갱신          | [읽기](book-ko/chapter8.ko.md)  | [7](chapter8/README.ko.md)  |
+|  9  | 🎙️ **멀티모달과 실시간 상호작용**  | 음성, GUI, Computer Use, 로보틱스                                        | [읽기](book-ko/chapter9.ko.md)  | [10](chapter9/README.ko.md) |
+| 10  | 🤝 **멀티 에이전트 협업**          | 협업 구조, 컨텍스트 공유와 격리, 에이전트 사회                           | [읽기](book-ko/chapter10.ko.md) | [8](chapter10/README.ko.md) |
 
-| 章 | 主题 | 一句话核心 | 正文 | 实验 |
-| :--: | --- | --- | :--: | :--: |
-| 1 | 🚀 **AI Agent 入门** | **Agent = LLM + 上下文 + 工具**；Harness 工程才是竞争力 | [读](book/chapter1.md) | [4](chapter1/README.md) |
-| 2 | 🎯 **上下文工程** | 上下文决定能力上限：KV Cache、提示工程、Agent Skills、上下文压缩 | [读](book/chapter2.md) | [10](chapter2/README.md) |
-| 3 | 📚 **用户记忆和知识库** | 跨会话记住用户、接入外部知识：用户记忆、RAG、结构化索引、知识图谱 | [读](book/chapter3.md) | [12](chapter3/README.md) |
-| 4 | 🛠️ **工具** | 工具是 Agent 的双手：MCP 协议、感知/执行/协作三类工具与主动工具发现 | [读](book/chapter4.md) | [5](chapter4/README.md) |
-| 5 | 💻 **Coding Agent 与通用 Agent** | 代码是「能创造新工具的工具」，生产级 Coding Agent 全景 | [读](book/chapter5.md) | [16](chapter5/README.md) |
-| 6 | 🎙️ **交互：观察与动作空间的扩展** | 从模态与时序两个维度扩展 Agent 的观察与动作空间：异步与事件驱动、语音交互、Computer Use 和机器人操作 | [读](book/chapter6.md) | [14](chapter6/README.md) |
-| 7 | 🎯 **Agent 的评估** | 把表现变成可比较信号：评估环境、指标、统计显著性、评估驱动选型 | [读](book/chapter7.md) | [14](chapter7/README.md) |
-| 8 | 🧠 **模型后训练** | 预训练/SFT/RL 三阶段：何时选 SFT、何时选 RL，工具调用内化、样本效率 | [读](book/chapter8.md) | [19](chapter8/README.md) |
-| 9 | 🔄 **Agent 的持续进化** | 从运行轨迹获得学习信号，更新知识、指令、程序与参数 | [读](book/chapter9.md) | [9](chapter9/README.md) |
-| 10 | 🤝 **多 Agent 协作** | 群体智能高于个体：协作框架、上下文共享/隔离、涌现的「Agent 社会」 | [读](book/chapter10.md) | [6](chapter10/README.md) |
+| 章  | 主题                              | 一句话核心                                                                                           |          正文           |           实验           |
+| :-: | --------------------------------- | ---------------------------------------------------------------------------------------------------- | :---------------------: | :----------------------: |
+|  1  | 🚀 **AI Agent 入门**              | **Agent = LLM + 上下文 + 工具**；Harness 工程才是竞争力                                              | [读](book/chapter1.md)  | [4](chapter1/README.md)  |
+|  2  | 🎯 **上下文工程**                 | 上下文决定能力上限：KV Cache、提示工程、Agent Skills、上下文压缩                                     | [读](book/chapter2.md)  | [10](chapter2/README.md) |
+|  3  | 📚 **用户记忆和知识库**           | 跨会话记住用户、接入外部知识：用户记忆、RAG、结构化索引、知识图谱                                    | [读](book/chapter3.md)  | [12](chapter3/README.md) |
+|  4  | 🛠️ **工具**                       | 工具是 Agent 的双手：MCP 协议、感知/执行/协作三类工具与主动工具发现                                  | [读](book/chapter4.md)  | [5](chapter4/README.md)  |
+|  5  | 💻 **Coding Agent 与通用 Agent**  | 代码是「能创造新工具的工具」，生产级 Coding Agent 全景                                               | [读](book/chapter5.md)  | [16](chapter5/README.md) |
+|  6  | 🎙️ **交互：观察与动作空间的扩展** | 从模态与时序两个维度扩展 Agent 的观察与动作空间：异步与事件驱动、语音交互、Computer Use 和机器人操作 | [读](book/chapter6.md)  | [14](chapter6/README.md) |
+|  7  | 🎯 **Agent 的评估**               | 把表现变成可比较信号：评估环境、指标、统计显著性、评估驱动选型                                       | [读](book/chapter7.md)  | [14](chapter7/README.md) |
+|  8  | 🧠 **模型后训练**                 | 预训练/SFT/RL 三阶段：何时选 SFT、何时选 RL，工具调用内化、样本效率                                  | [读](book/chapter8.md)  | [19](chapter8/README.md) |
+|  9  | 🔄 **Agent 的持续进化**           | 从运行轨迹获得学习信号，更新知识、指令、程序与参数                                                   | [读](book/chapter9.md)  | [9](chapter9/README.md)  |
+| 10  | 🤝 **多 Agent 协作**              | 群体智能高于个体：协作框架、上下文共享/隔离、涌现的「Agent 社会」                                    | [读](book/chapter10.md) | [6](chapter10/README.md) |
 
 > 💡 **读** = 在 GitHub 网页直接读章节正文（markdown）；**N** = 该章正文实验数，点击查看实现与复现说明。项目类型说明（✅ 可运行 / 📖 复现 / 🚧 设计）见各章 README。
 >
-> 📚 如何高效阅读本书？详见 **[学习建议](docs/zh-CN/LEARNING.md)**（核心理念、学习路径、难度分级、实践建议）。
+> 📚 효율적인 학습 순서는 **[학습 가이드](LEARNING.md)**에서 확인하세요.
 
-## 💻 运行配套实验
+## 🔑 API 키
 
 项目统一支持 **Python 3.11–3.13**。请在仓库根目录按章节安装依赖；将 `ch1` 替换为 `ch2` ~ `ch10` 即可安装对应章节：
 
-```bash
-# 推荐：使用提交到仓库的 uv.lock，获得可复现的章节环境
-uv sync --locked --extra ch1
+| 플랫폼              | 링크                                                                    | 비고                                                              | 접속 지역        |
+| ------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- | ---------------- |
+| **Kimi** (Moonshot) | <https://platform.moonshot.cn/>                                         | 긴 컨텍스트와 에이전트 기능에 강한 Kimi 계열                      | 중국 본토        |
+| **Zhipu GLM**       | <https://open.bigmodel.cn/>                                             | GLM-4.6 등, 중국어 성능과 비용 효율이 좋음                        | 중국 본토        |
+| **SiliconFlow**     | <https://siliconflow.cn/>                                               | DeepSeek, Qwen 등 여러 오픈 소스 모델                             | 중국 본토        |
+| **DeepSeek**        | <https://platform.deepseek.com/>                                        | DeepSeek 공식 API                                                 | 글로벌·중국 본토 |
+| **Krill AI**        | [www.krill-ai.net](https://www.krill-ai.net/register?invite=Q8D3L35725) | 주요 글로벌·중국 모델을 한곳에서 제공                             | 글로벌·중국 본토 |
+| **OpenRouter**      | <https://openrouter.ai/>                                                | GPT, Claude, Gemini, Kimi, GLM, DeepSeek, Qwen 등을 한곳에서 제공 | 글로벌           |
 
-# 未安装 uv 时：使用 pip 从 pyproject.toml 重新解析
-python -m pip install -e ".[ch1]"
-```
+## 💎 후원
 
-运行会调用模型的实验前，请按该实验 README 配置凭据：支持根目录配置的实验可复制 `.env.example` 为 `.env` 并填入至少一个提供商 Key；有些实验要求在自身目录放 `.env` 或直接导出环境变量。只有在实验 README 或 CLI 明确列出 `ollama` 时，才可启动本地 Ollama 并添加 `--provider ollama`。
+이 프로젝트를 후원하는 **Krill AI**에 감사드립니다. Krill은 GPT, Claude, Gemini와 여러 중국 모델을 위한 안정적인 API 중계 서비스, 기업 맞춤 지원, 전용 WebSocket 연결을 제공합니다.
 
-安装后可从仓库根目录运行实验，例如：
+이 책의 독자는 [이 링크](https://www.krill-ai.net/register?invite=Q8D3L35725)로 가입하고 충전할 때 프로모션 코드 `ai-agent-book`을 입력하면 첫 Codex 플랜을 23% 할인받을 수 있습니다.
 
-```bash
-uv run python chapter1/context/main.py
-# 使用 pip 安装时也可直接运行：python chapter1/context/main.py
-```
+> 🧪 실험 실행 상태, 증거, 미충족 승인 조건은 [`EXPERIMENT_STATUS.md`](../EXPERIMENT_STATUS.md)에서 별도로 관리합니다. 소스 코드를 복제하거나 설치한 것만으로는 실험 완료를 입증할 수 없습니다.
 
 - `uv` 安装方法见 [官方文档](https://docs.astral.sh/uv/getting-started/installation/)；`pip` 仍受支持，但不会使用锁文件。
 - 各实验现有的 `requirements.txt` 在迁移期间继续有效，适合只运行单个项目或需要特殊版本约束的情况。
@@ -109,15 +121,15 @@ uv run python chapter1/context/main.py
 
 建议申请下面几个平台的 API Key 方便学习。模型选型可参考 [这篇指南](https://01.me/2025/07/llm-api-setup/)。
 
-| 平台 | 链接 | 特色 | 访问节点 |
-| --- | --- | --- | --- |
-| **Kimi**（月之暗面） | <https://platform.moonshot.cn/> | Kimi 系列，Coding、Agent 能力强 | 中国大陆 |
-| **智谱 GLM** | <https://open.bigmodel.cn/> | GLM-5.2 等，Coding、Agent 能力强 | 中国大陆 |
-| **Siliconflow** | <https://siliconflow.cn/> | 各种开源模型（DeepSeek、Qwen 等），中国大陆访问速度快 | 中国大陆 |
-| **DeepSeek** | <https://platform.deepseek.com/> | DeepSeek 官方 API | 全球 + 中国大陆 |
-| **Atlas Cloud** | <https://www.atlascloud.ai/> | 通过 OpenAI 兼容接口访问多个厂商的模型 | 全球 |
-| **Krill AI** | [www.krill-code.com](https://www.krill-code.com/register?invite=Q8D3L35725) | 一站式访问全球及国内主流模型（OpenAI、Claude、Gemini、Grok、Kimi、GLM、DeepSeek、Qwen、Minimax） | 全球 + 中国大陆 |
-| **OpenRouter** | <https://openrouter.ai/> | 一站式访问全球及国内主流模型（GPT、Claude、Gemini、Kimi、GLM、DeepSeek、Qwen 等） | 全球 |
+| 平台                 | 链接                                                                        | 特色                                                                                             | 访问节点        |
+| -------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------- |
+| **Kimi**（月之暗面） | <https://platform.moonshot.cn/>                                             | Kimi 系列，Coding、Agent 能力强                                                                  | 中国大陆        |
+| **智谱 GLM**         | <https://open.bigmodel.cn/>                                                 | GLM-5.2 等，Coding、Agent 能力强                                                                 | 中国大陆        |
+| **Siliconflow**      | <https://siliconflow.cn/>                                                   | 各种开源模型（DeepSeek、Qwen 等），中国大陆访问速度快                                            | 中国大陆        |
+| **DeepSeek**         | <https://platform.deepseek.com/>                                            | DeepSeek 官方 API                                                                                | 全球 + 中国大陆 |
+| **Atlas Cloud**      | <https://www.atlascloud.ai/>                                                | 通过 OpenAI 兼容接口访问多个厂商的模型                                                           | 全球            |
+| **Krill AI**         | [www.krill-code.com](https://www.krill-code.com/register?invite=Q8D3L35725) | 一站式访问全球及国内主流模型（OpenAI、Claude、Gemini、Grok、Kimi、GLM、DeepSeek、Qwen、Minimax） | 全球 + 中国大陆 |
+| **OpenRouter**       | <https://openrouter.ai/>                                                    | 一站式访问全球及国内主流模型（GPT、Claude、Gemini、Kimi、GLM、DeepSeek、Qwen 等）                | 全球            |
 
 ## 💎 赞助商
 
@@ -134,7 +146,7 @@ Krill 为本书读者提供特别优惠：使用[此链接](https://www.krill-co
 ### 一键克隆脚本
 
 <details>
-<summary><b>🔧 展开克隆命令</b>（共 23 个 checkout：22 个实验映射 + 1 个辅助 cookbook）</summary>
+<summary><b>🔧 clone 명령 펼치기</b> (외부 저장소 23개)</summary>
 
 ```bash
 # 第 6 章 · GUI 与机器人外部复现轨道
@@ -173,19 +185,19 @@ git clone https://github.com/joonspk-research/generative_agents.git chapter10/ge
 
 </details>
 
-## 🤝 贡献
+## 🤝 기여하기
 
-本书与配套代码全部开源，非常欢迎社区通过 Pull Request 参与共建：
+책과 연계 코드는 모두 오픈 소스이며 Pull Request를 환영합니다.
 
-| 类型 | 说明 |
-| --- | --- |
-| 📝 **书籍内容改进** | 勘误、补充、更清晰的表述，或新增前沿进展（正文见 `book/chapter*.md`） |
-| 🐛 **代码改进与 Bug 修复** | 让配套项目更健壮、更易用、更贴近生产实践 |
-| 🧪 **新的实践项目** | 为某个实验补充/替换更好的实现，或贡献全新的示例项目 |
-| 🎨 **配图设计改进** | 直接改进 `book/images/` 中已签入的 SVG 图表，让它们更清晰美观 |
-| 🌐 **新语言翻译** | 欢迎翻译成更多语言，可参考英文（`book-en/`）、阿拉伯语（`book-ar/`）、繁體中文（台灣）版（`book-zhtw/`）、俄语（`book-ru/`）、泰米尔语（`book-ta/`）、越南语（`book-vi/`）、日语（`book-ja/`）、土耳其语（`book-tr/`）、韩语（`book-ko/`）、匈牙利语（`book-hu/`）、希伯来语（`book-he/`）、葡萄牙语（巴西）（`book-ptbr/`）的组织方式 |
+| 类型                       | 说明                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 📝 **书籍内容改进**        | 勘误、补充、更清晰的表述，或新增前沿进展（正文见 `book/chapter*.md`）                                                                                                                                                                                                                                                                  |
+| 🐛 **代码改进与 Bug 修复** | 让配套项目更健壮、更易用、更贴近生产实践                                                                                                                                                                                                                                                                                               |
+| 🧪 **新的实践项目**        | 为某个实验补充/替换更好的实现，或贡献全新的示例项目                                                                                                                                                                                                                                                                                    |
+| 🎨 **配图设计改进**        | 直接改进 `book/images/` 中已签入的 SVG 图表，让它们更清晰美观                                                                                                                                                                                                                                                                          |
+| 🌐 **新语言翻译**          | 欢迎翻译成更多语言，可参考英文（`book-en/`）、阿拉伯语（`book-ar/`）、繁體中文（台灣）版（`book-zhtw/`）、俄语（`book-ru/`）、泰米尔语（`book-ta/`）、越南语（`book-vi/`）、日语（`book-ja/`）、土耳其语（`book-tr/`）、韩语（`book-ko/`）、匈牙利语（`book-hu/`）、希伯来语（`book-he/`）、葡萄牙语（巴西）（`book-ptbr/`）的组织方式 |
 
-提交前建议先把相关实验亲手跑一遍、确认可复现；也欢迎先提 issue 讨论想法。
+제출하기 전에 관련 실험을 직접 실행해 재현 가능성을 확인해 주세요. 아이디어를 먼저 Issue로 논의하는 것도 환영합니다.
 
 ## ❤️ 贡献者
 
@@ -281,9 +293,9 @@ git clone https://github.com/joonspk-research/generative_agents.git chapter10/ge
 
 ## 📄 许可证
 
-本项目采用 [Apache License 2.0](LICENSE) 开源许可证，详见 [`LICENSE`](LICENSE) 文件。部分子项目可能包含各自的许可证信息，请以子项目中的说明为准。
+이 프로젝트는 [Apache License 2.0](LICENSE)에 따라 배포됩니다. 일부 하위 프로젝트는 별도 라이선스를 포함할 수 있습니다.
 
-## ⭐ Star History
+## ⭐ Star 기록
 
 <a href="https://star-history.com/#bojieli/ai-agent-book&Date">
   <picture>
@@ -293,4 +305,4 @@ git clone https://github.com/joonspk-research/generative_agents.git chapter10/ge
   </picture>
 </a>
 
-<sub>由 [`scripts/gen_star_history.py`](scripts/gen_star_history.py) 生成，[GitHub Actions](.github/workflows/star-history.yml) 每日自动更新 · 点击图片查看实时数据</sub>
+<sub>[`scripts/gen_star_history.py`](scripts/gen_star_history.py)로 생성하며 [GitHub Actions](.github/workflows/star-history.yml)가 매일 갱신합니다.</sub>
