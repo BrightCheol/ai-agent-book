@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run Experiment 1-2 through Kimi K3's official Formula web-search tool."""
+"""Kimi K3의 공식 Formula web_search 도구를 통해 실험 1-2를 실행합니다."""
 
 from __future__ import annotations
 
@@ -19,10 +19,10 @@ from typing import Any, Dict, List
 from agent import WebSearchAgent, is_failure_answer
 
 
-QUESTION = """截至 2026 年 7 月 30 日，请核查东盟成员资格和印度尼西亚首都的最新状态。
-请自主完成研究：先搜索东盟成员国的官方来源，确认当前成员数量、成员名单及东帝汶正式入盟日期；
-检查第一轮证据还缺什么，然后至少再执行一次不同的后续搜索，核实雅加达与努山塔拉的当前法律地位以及总统令是否已生效。
-最后给出结构化结论、检索日期和可点击的权威来源链接。不要依赖记忆作答。"""
+QUESTION = """2026년 7월 30일 기준으로 아세안(ASEAN) 회원국 자격 및 인도네시아 수도의 최신 상태를 확인해 주세요.
+스스로 자율 연구를 수행하세요: 먼저 아세안 회원국의 공식 출처를 검색하여 현재 회원국 수, 회원국 명단 및 동티모르의 공식 가입 일자를 확인하세요.
+1차 검색 결과에서 부족한 정보를 파악한 후, 최소 1회 이상의 후속 검색을 추가로 수행하여 자카르타와 누산타라의 현재 법적 지위 및 대통령령 발효 여부를 검증하세요.
+마지막으로 구조화된 결론, 검색 수행 일자, 클릭 가능한 신뢰할 수 있는 공식 출처 링크를 제공하세요. 기억에 의존해 답하지 마세요."""
 
 
 def git_value(*args: str) -> str | None:
@@ -47,7 +47,7 @@ def response_ids(turns: List[Dict[str, Any]]) -> List[str]:
 
 
 def fiber_ids(turns: List[Dict[str, Any]]) -> List[str]:
-    """Return only real, succeeded Formula Fiber receipts."""
+    """실제 성공한 Formula Fiber 영수증 ID만 반환합니다."""
     return [
         turn.get("response", {}).get("id")
         for turn in turns
@@ -148,25 +148,25 @@ def validate(payload: Dict[str, Any]) -> Dict[str, Any]:
             for domain in ("go.id", "polri.go.id", "mkri.id")
         ),
         "current_eleven_member_fact": any(
-            marker in answer_lower for marker in ("11", "十一")
+            marker in answer_lower for marker in ("11", "十一", "11개")
         )
         and any(
-            marker in answer_lower for marker in ("timor-leste", "东帝汶")
+            marker in answer_lower for marker in ("timor-leste", "동티모르", "东帝汶")
         ),
         "timor_leste_admission_date": "2025" in answer_lower
-        and any(marker in answer_lower for marker in ("10月26", "10 月 26", "10-26", "october 26")),
+        and any(marker in answer_lower for marker in ("10월 26", "10월26", "10-26", "10月26", "10 月 26", "october 26")),
         "indonesia_capital_transition_explained": any(
-            marker in answer_lower for marker in ("jakarta", "雅加达")
+            marker in answer_lower for marker in ("jakarta", "자카르타", "雅加达")
         )
         and any(
-            marker in answer_lower for marker in ("nusantara", "努山塔拉")
+            marker in answer_lower for marker in ("nusantara", "누산타라", "努山塔拉")
         )
         and any(
             marker in answer_lower
-            for marker in ("presidential decree", "presidential decision", "总统令")
+            for marker in ("presidential decree", "presidential decision", "대통령령", "대통령 결정", "总统令")
         ),
         "retrieval_date_reported": "2026" in answer_lower
-        and any(marker in answer_lower for marker in ("7月30", "7 月 30", "2026-07-30")),
+        and any(marker in answer_lower for marker in ("7월 30", "7월30", "7月30", "7 月 30", "2026-07-30")),
     }
     return {
         "checks": checks,
@@ -185,9 +185,7 @@ def write_json(path: Path, value: Dict[str, Any]) -> None:
 def run_once(model: str, timeout: float) -> Dict[str, Any]:
     key = os.getenv("MOONSHOT_API_KEY") or os.getenv("KIMI_API_KEY")
     if not key:
-        raise RuntimeError("MOONSHOT_API_KEY or KIMI_API_KEY is required")
-    # The SDK retries transport failures; experiment-level retries below are
-    # reserved for Moonshot's explicit transient engine-overload response.
+        raise RuntimeError("MOONSHOT_API_KEY 또는 KIMI_API_KEY가 필요합니다.")
     os.environ["SEARCH_TIMEOUT"] = str(timeout)
     agent = WebSearchAgent(api_key=key, model=model, verbose=True)
     answer = agent.search_and_answer(QUESTION, max_iterations=8)
@@ -210,7 +208,7 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path)
     args = parser.parse_args()
     if args.model != "kimi-k3":
-        parser.error("Experiment 1-2 requires the exact kimi-k3 model")
+        parser.error("실험 1-2는 정확한 kimi-k3 모델이 필요합니다.")
 
     failures = []
     run = None
@@ -231,10 +229,6 @@ def main() -> int:
         if attempt == args.attempts:
             run = candidate
             break
-        # Kimi K3 can occasionally stop after a tool round, and Formula Fibers
-        # can transiently overload.  Both
-        # are honest failed attempts; retry the whole independent run and keep
-        # every failed API trace in the final evidence.
         time.sleep(2**attempt)
     assert run is not None
 

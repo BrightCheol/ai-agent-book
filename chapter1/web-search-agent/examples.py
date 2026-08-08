@@ -1,5 +1,5 @@
 """
-高级示例 - 展示 Web Search Agent 的各种用法
+고급 예제 - Web Search Agent의 다양한 활용법 시연
 """
 
 import json
@@ -14,28 +14,28 @@ logger = logging.getLogger(__name__)
 
 class AdvancedWebSearchAgent(WebSearchAgent):
     """
-    高级 Web Search Agent - 扩展功能
+    고급 Web Search Agent - 기능 확장 클래스
     """
     
     def batch_search(self, questions: List[str]) -> List[Dict[str, str]]:
         """
-        批量搜索多个问题
+        여러 질문을 일괄 검색합니다.
         
         Args:
-            questions: 问题列表
+            questions: 질문 목록
             
         Returns:
-            答案列表
+            답변 결과 목록
         """
         results = []
         for i, question in enumerate(questions, 1):
-            logger.info(f"处理问题 {i}/{len(questions)}: {question}")
+            logger.info(f"질문 처리 중 {i}/{len(questions)}: {question}")
             try:
                 answer = self.search_and_answer(question)
-                # search_and_answer 内部已捕获异常并返回错误字符串（见 agent.py），
-                # 因此下面的 except 通常不会触发。用统一的 is_failure_answer 判定状态，
-                # 覆盖“出现错误 / 超过最大迭代次数 / 无法获取足够信息”所有失败兜底，
-                # 避免把失败的搜索错误地标记为 success。
+                # search_and_answer 내부에서 예외를 잡고 에러 문자열을 반환하므로(agent.py 참조),
+                # 아래의 except는 일반적으로 트리거되지 않습니다. 통합된 is_failure_answer를 통해
+                # "오류 발생 / 최대 반복 초과 / 정보 부족" 등 모든 실패 케이스를 판정하여
+                # 실패한 검색이 success로 오판되는 것을 방지합니다.
                 status = "error" if is_failure_answer(answer) else "success"
                 results.append({
                     "question": question,
@@ -48,77 +48,75 @@ class AdvancedWebSearchAgent(WebSearchAgent):
                     "answer": str(e),
                     "status": "error"
                 })
-            # 清空历史，避免上下文混淆
+            # 대화 이력을 초기화하여 컨텍스트 간섭을 방지
             self.clear_history()
         return results
     
     def search_with_context(self, question: str, context: str) -> str:
         """
-        带上下文的搜索
+        컨텍스트 기반 검색
         
         Args:
-            question: 用户问题
-            context: 额外的上下文信息
+            question: 사용자 질문
+            context: 추가 배경 정보 컨텍스트
             
         Returns:
-            答案
+            답변 문자열
         """
-        # 构建带上下文的问题
+        # 컨텍스트가 포함된 질문 구성
         contextualized_question = f"""
-背景信息：{context}
+배경 정보: {context}
 
-基于上述背景，请回答以下问题：
+위 배경 정보를 바탕으로 다음 질문에 답변해 주세요:
 {question}
 """
         return self.search_and_answer(contextualized_question)
     
     def comparative_search(self, items: List[str], aspect: str) -> str:
         """
-        比较搜索 - 搜索并比较多个项目
+        비교 검색 - 여러 항목을 검색하고 비교합니다.
         
         Args:
-            items: 要比较的项目列表
-            aspect: 比较的方面
+            items: 비교할 항목 목록
+            aspect: 비교할 측면/기준
             
         Returns:
-            比较结果
+            비교 결과 문자열
         """
-        # 构建比较问题
-        items_str = "、".join(items)
-        question = f"请搜索并比较 {items_str} 在 {aspect} 方面的差异和优劣"
+        # 비교 질문 구성
+        items_str = ", ".join(items)
+        question = f"{items_str}의 {aspect} 측면에서의 차이점과 장단점을 검색하여 비교 분석해 주세요."
         
         return self.search_and_answer(question)
     
     def fact_check(self, statement: str) -> Dict[str, Any]:
         """
-        事实核查 - 验证陈述的真实性
+        팩트 체크 - 주장의 사실 여부를 검증합니다.
         
         Args:
-            statement: 需要验证的陈述
+            statement: 검증할 주장 문장
             
         Returns:
-            验证结果
+            검증 결과 딕셔너리
         """
         question = f"""
-请验证以下陈述的真实性：
+다음 주장의 사실 여부를 검증해 주세요:
 "{statement}"
 
-请严格按以下格式作答：
-- 第一行只输出判定结论，三选一：真 / 假 / 部分真实
-- 之后另起一行给出相关事实、证据与信息来源
+반드시 다음 형식으로 엄격히 답변해 주세요:
+- 첫 줄에는 판정 결과만 출력 (다음 3가지 중 택 1: 참 / 거짓 / 일부 사실)
+- 그 다음 줄부터 관련 사실, 근거 및 정보 출처를 설명
 """
         answer = self.search_and_answer(question)
 
-        # 解析判定：模型被要求首行只输出“真/假/部分真实”。
-        # 按“部分真实 -> 假 -> 真”的优先级匹配，避免“真”字出现在
-        # “部分真实/不真实”里而被误判为真（原实现 `"真" in answer[:100]` 的缺陷）。
+        # 판정 파싱: 모델이 첫 줄에 "참/거짓/일부 사실"만 출력하도록 요청됨
         first_line = next((ln.strip() for ln in answer.splitlines() if ln.strip()), "")
-        if "部分真实" in first_line or "部分正确" in first_line:
+        if "일부 사실" in first_line or "일부 참" in first_line or "일부 맞음" in first_line:
             is_true = False
-        elif any(neg in first_line for neg in ("假", "不真实", "不属实", "不准确", "不正确", "错误")):
+        elif any(neg in first_line for neg in ("거짓", "허위", "사실 아님", "틀림", "오류", "아님")):
             is_true = False
         else:
-            is_true = "真" in first_line or "属实" in first_line or "正确" in first_line
+            is_true = "참" in first_line or "사실" in first_line or "맞음" in first_line or "진실" in first_line
         return {
             "statement": statement,
             "is_true": is_true,
@@ -127,131 +125,131 @@ class AdvancedWebSearchAgent(WebSearchAgent):
 
 
 def example_basic_search():
-    """基础搜索示例"""
+    """기본 검색 예제"""
     print("\n" + "="*60)
-    print("📌 示例 1: 基础搜索")
+    print("📌 예제 1: 기본 검색")
     print("="*60)
     
     agent = WebSearchAgent(Config.get_api_key())
     
     questions = [
-        "OpenAI 最新发布的 GPT 模型有什么特点？",
-        "如何学习机器学习？推荐一些资源",
+        "OpenAI가 최근 발표한 최신 모델의 주요 특징은 무엇인가요?",
+        "머신러닝을 공부하기 위한 추천 학습 로드맵과 자료를 알려주세요.",
     ]
     
     for q in questions:
-        print(f"\n问题: {q}")
+        print(f"\n질문: {q}")
         print("-"*40)
         answer = agent.search_and_answer(q)
-        print(f"答案: {answer}")
+        print(f"답변: {answer}")
 
 
 def example_batch_search():
-    """批量搜索示例"""
+    """일괄(Batch) 검색 예제"""
     print("\n" + "="*60)
-    print("📌 示例 2: 批量搜索")
+    print("📌 예제 2: 일괄 검색")
     print("="*60)
     
     agent = AdvancedWebSearchAgent(Config.get_api_key())
     
     questions = [
-        "React 和 Vue 的主要区别是什么？",
-        "Python 最适合做什么类型的项目？",
-        "如何开始学习人工智能？",
+        "React와 Vue의 주요 아키텍처 차이점은 무엇인가요?",
+        "Python이 가장 적합한 프로젝트 분야는 무엇인가요?",
+        "인공지능 공부를 시작하는 가장 좋은 방법은 무엇인가요?",
     ]
     
     results = agent.batch_search(questions)
     
     for result in results:
-        print(f"\n问题: {result['question']}")
-        print(f"状态: {result['status']}")
-        print(f"答案: {result['answer'][:200]}...")  # 只显示前200字符
+        print(f"\n질문: {result['question']}")
+        print(f"상태: {result['status']}")
+        print(f"답변: {result['answer'][:200]}...")  # 앞 200자만 출력
 
 
 def example_contextual_search():
-    """带上下文的搜索示例"""
+    """컨텍스트 기반 검색 예제"""
     print("\n" + "="*60)
-    print("📌 示例 3: 带上下文的搜索")
+    print("📌 예제 3: 컨텍스트 기반 검색")
     print("="*60)
     
     agent = AdvancedWebSearchAgent(Config.get_api_key())
     
-    context = "我是一个刚开始学习编程的大学生，主要对 Web 开发感兴趣"
-    question = "我应该先学习哪种编程语言？"
+    context = "저는 이제 막 프로그래밍을 시작한 대학생이며, 웹 개발에 가장 관심이 많습니다."
+    question = "어떤 프로그래밍 언어를 먼저 공부하는 것이 좋을까요?"
     
-    print(f"上下文: {context}")
-    print(f"问题: {question}")
+    print(f"컨텍스트: {context}")
+    print(f"질문: {question}")
     print("-"*40)
     
     answer = agent.search_with_context(question, context)
-    print(f"答案: {answer}")
+    print(f"답변: {answer}")
 
 
 def example_comparative_search():
-    """比较搜索示例"""
+    """비교 검색 예제"""
     print("\n" + "="*60)
-    print("📌 示例 4: 比较搜索")
+    print("📌 예제 4: 비교 검색")
     print("="*60)
     
     agent = AdvancedWebSearchAgent(Config.get_api_key())
     
-    # 比较不同的技术框架
+    # 여러 기술 프레임워크 비교
     items = ["TensorFlow", "PyTorch", "JAX"]
-    aspect = "性能和易用性"
+    aspect = "성능 및 사용 편의성"
     
-    print(f"比较项目: {', '.join(items)}")
-    print(f"比较方面: {aspect}")
+    print(f"비교 대상: {', '.join(items)}")
+    print(f"비교 기준: {aspect}")
     print("-"*40)
     
     result = agent.comparative_search(items, aspect)
-    print(f"比较结果:\n{result}")
+    print(f"비교 결과:\n{result}")
 
 
 def example_fact_check():
-    """事实核查示例"""
+    """팩트 체크 예제"""
     print("\n" + "="*60)
-    print("📌 示例 5: 事实核查")
+    print("📌 예제 5: 팩트 체크")
     print("="*60)
     
     agent = AdvancedWebSearchAgent(Config.get_api_key())
     
     statements = [
-        "Python 是世界上最流行的编程语言",
-        "量子计算机已经可以破解所有现代加密算法",
-        "GPT-4 有 1.76 万亿个参数",
+        "Python은 전 세계에서 가장 인기 있는 프로그래밍 언어 중 하나이다.",
+        "양자 컴퓨터는 이미 모든 현대 암호화 알고리즘을 해독할 수 있다.",
+        "GPT-4는 1.76조 개의 파라미터를 가지고 있다.",
     ]
     
     for statement in statements:
-        print(f"\n陈述: {statement}")
+        print(f"\n검증 대상 문장: {statement}")
         result = agent.fact_check(statement)
-        print(f"真实性: {'✅ 真' if result['is_true'] else '❌ 假/存疑'}")
-        print(f"解释: {result['explanation'][:200]}...")
+        print(f"진위 여부: {'✅ 참' if result['is_true'] else '❌ 거짓/불확실'}")
+        print(f"상세 설명: {result['explanation'][:200]}...")
 
 
 def example_research_assistant():
-    """研究助手示例 - 深度研究某个主题"""
+    """연구 보조 예제 - 특정 주제에 대한 심층 연구"""
     print("\n" + "="*60)
-    print("📌 示例 6: 研究助手 - 深度研究")
+    print("📌 예제 6: 연구 보조 - 심층 연구")
     print("="*60)
     
     agent = AdvancedWebSearchAgent(Config.get_api_key())
     
-    topic = "大语言模型的发展历程"
+    topic = "대규모 언어 모델(LLM)의 발전 과정"
     
-    # 构建研究问题序列
+    # 연구 질문 시퀀스 구성
     research_questions = [
-        f"什么是{topic}？请提供详细定义",
-        f"{topic}的关键里程碑和重要事件有哪些？",
-        f"{topic}面临的主要挑战是什么？",
-        f"{topic}的未来发展趋势如何？",
+        f"{topic}이란 무엇인가요? 상세한 정의를 제공해 주세요.",
+        f"{topic}의 주요 마일스톤과 핵심 사건은 무엇인가요?",
+        f"{topic}이 직면한 주요 기술적 과제는 무엇인가요?",
+        f"{topic}의 미래 발전 트렌드는 어떻게 전망되나요?",
     ]
     
-    print(f"研究主题: {topic}")
+    print(f"연구 주제: {topic}")
     print("="*60)
     
     research_report = []
     for i, q in enumerate(research_questions, 1):
-        print(f"\n研究问题 {i}: {q}")
+        print(f"\n연구 질문 {i}: {q}")
         print("-"*40)
         answer = agent.search_and_answer(q)
         research_report.append({
@@ -259,47 +257,47 @@ def example_research_assistant():
             "question": q,
             "findings": answer
         })
-        print(f"发现: {answer[:300]}...")
-        agent.clear_history()  # 清空历史，确保每个问题独立
+        print(f"조사 결과: {answer[:300]}...")
+        agent.clear_history()  # 질문별 독립성을 위해 이력 초기화
     
-    # 保存研究报告
+    # 연구 보고서 저장
     with open("research_report.json", "w", encoding="utf-8") as f:
         json.dump(research_report, f, ensure_ascii=False, indent=2)
-    print(f"\n✅ 研究报告已保存到 research_report.json")
+    print(f"\n✅ 연구 보고서가 research_report.json에 저장되었습니다.")
 
 
 def main():
-    """运行所有示例"""
+    """모든 예제 실행"""
     
     if not Config.validate():
         print("请先设置 MOONSHOT_API_KEY（或 KIMI_API_KEY）环境变量")
         return
     
     examples = [
-        ("基础搜索", example_basic_search),
-        ("批量搜索", example_batch_search),
-        ("带上下文搜索", example_contextual_search),
-        ("比较搜索", example_comparative_search),
-        ("事实核查", example_fact_check),
-        ("研究助手", example_research_assistant),
+        ("기본 검색", example_basic_search),
+        ("일괄 검색", example_batch_search),
+        ("컨텍스트 기반 검색", example_contextual_search),
+        ("비교 검색", example_comparative_search),
+        ("팩트 체크", example_fact_check),
+        ("연구 보조", example_research_assistant),
     ]
     
     print("\n" + "="*60)
-    print("🎯 Kimi Web Search Agent - 高级示例")
+    print("🎯 Kimi Web Search Agent - 고급 예제")
     print("="*60)
-    print("\n选择要运行的示例:")
+    print("\n실행할 예제를 선택하세요:")
     
     for i, (name, _) in enumerate(examples, 1):
         print(f"{i}. {name}")
-    print(f"{len(examples) + 1}. 运行所有示例")
-    print("0. 退出")
+    print(f"{len(examples) + 1}. 모든 예제 순차 실행")
+    print("0. 종료")
     
     try:
-        choice = input("\n请输入选项 (0-7): ").strip()
+        choice = input("\n옵션을 입력하세요 (0-7): ").strip()
         choice = int(choice)
         
         if choice == 0:
-            print("退出程序")
+            print("프로그램을 종료합니다.")
             return
         elif 1 <= choice <= len(examples):
             examples[choice - 1][1]()
@@ -308,15 +306,15 @@ def main():
                 try:
                     func()
                 except Exception as e:
-                    logger.error(f"运行 {name} 时出错: {str(e)}")
+                    logger.error(f"{name} 실행 중 오류 발생: {str(e)}")
         else:
-            print("无效的选项")
+            print("유효하지 않은 옵션입니다.")
     except ValueError:
-        print("请输入有效的数字")
+        print("유효한 숫자를 입력해 주세요.")
     except KeyboardInterrupt:
-        print("\n程序被中断")
+        print("\n프로그램이 중단되었습니다.")
     except Exception as e:
-        logger.error(f"运行示例时出错: {str(e)}")
+        logger.error(f"예제 실행 중 오류 발생: {str(e)}")
 
 
 if __name__ == "__main__":
