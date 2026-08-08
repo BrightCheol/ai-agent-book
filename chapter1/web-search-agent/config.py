@@ -1,17 +1,13 @@
 """
-配置文件 - Kimi API 配置
+설정 모듈 - Kimi API 설정
 """
 
 import os
 from typing import Optional
 from dotenv import load_dotenv
 
-load_dotenv()
-
-from dotenv import load_dotenv
-
-# Read the nearest .env, searching upward from the working directory, so a
-# single file at the repository root serves every chapter.
+# 작업 디렉토리 상위로 검색하여 가장 가까운 .env를 로드하므로
+# 저장소 루트에 있는 단일 .env 파일로 모든 챕터에서 공용으로 사용할 수 있습니다.
 load_dotenv()
 
 
@@ -40,11 +36,11 @@ except ImportError:  # pragma: no cover - exercised only without the package
 
 
 class Config:
-    """配置类"""
+    """설정 클래스"""
     
-    # Kimi API 配置
+    # Kimi API 설정
     MOONSHOT_API_KEY: str = os.getenv("MOONSHOT_API_KEY", "")
-    # 向后兼容：如果没有 MOONSHOT_API_KEY，尝试使用 KIMI_API_KEY
+    # 하위 호환성: MOONSHOT_API_KEY가 없으면 KIMI_API_KEY 사용 시도
     if not MOONSHOT_API_KEY:
         MOONSHOT_API_KEY = os.getenv("KIMI_API_KEY", "")
     
@@ -54,8 +50,8 @@ class Config:
         os.getenv("KIMI_BASE_URL", "").strip() or "https://api.moonshot.cn/v1"
     )
     
-    # 模型配置
-    DEFAULT_MODEL: str = "kimi-k3"  # 使用最新的 Kimi K3 模型
+    # 모델 설정
+    DEFAULT_MODEL: str = "kimi-k3"  # 최신 Kimi K3 모델 사용
 
     # 搜索配置
     MAX_SEARCH_ITERATIONS: int = 5  # 最大搜索迭代次数（与 agent 默认值保持一致）
@@ -66,35 +62,35 @@ class Config:
     # 保持一致，确保 README 里的交互入口与验收脚本跑在同一配置下。
     SEARCH_TIMEOUT: float = float(os.getenv("SEARCH_TIMEOUT", "180"))
     
-    # 日志配置
+    # 로깅 설정
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
     @classmethod
     def validate(cls) -> bool:
         """
-        验证配置是否有效
+        설정이 유효한지 검증합니다.
         
         Returns:
-            bool: 配置是否有效
+            bool: 설정 유효 여부
         """
         if not cls.MOONSHOT_API_KEY:
-            print("错误: 未设置 MOONSHOT_API_KEY 环境变量")
-            print("请设置环境变量: export MOONSHOT_API_KEY='your-api-key'")
-            print("(或者使用旧的环境变量名: export KIMI_API_KEY='your-api-key')")
+            print("오류: MOONSHOT_API_KEY 환경 변수가 설정되지 않았습니다.")
+            print("환경 변수를 설정하세요: export MOONSHOT_API_KEY='your-api-key'")
+            print("(또는 기존 변수명 사용: export KIMI_API_KEY='your-api-key')")
             return False
         return True
     
     @classmethod
     def get_api_key(cls, api_key: Optional[str] = None) -> str:
         """
-        获取 API Key
+        API Key를 가져옵니다.
         
         Args:
-            api_key: 可选的 API key，如果提供则使用，否则从环境变量获取
+            api_key: 선택적 API key (제공되면 이를 사용하고, 그렇지 않으면 환경 변수에서 가져옴)
             
         Returns:
-            API key
+            API key 문자열
         """
         if api_key:
             return api_key

@@ -1,6 +1,6 @@
 """
 Kimi Web Search Agent
-一个基于 Kimi API 的智能搜索 Agent，能够理解用户问题，通过搜索引擎获取信息，并总结出答案。
+Kimi API 기반의 지능형 검색 Agent로, 사용자 질문을 이해하고 검색 엔진을 통해 정보를 수집한 뒤 답변을 종합합니다.
 """
 
 import json
@@ -12,7 +12,7 @@ import os
 import requests
 import time
 
-# 设置日志
+# 로깅 설정
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -25,55 +25,51 @@ def _reasoning_safe_temperature(model, requested=1.0):
     return 1 if ("kimi-k3" in m or "gpt-5" in m) else requested
 
 
-# ReAct 轨迹的步骤类型与展示标签（思考 → 行动 → 观察 → 最终答案）
+# ReAct 궤적의 단계 유형 및 표시 라벨 (생각 → 행동 → 관찰 → 최종 답변)
 STEP_LABELS = {
-    "thought": ("💭", "思考"),
-    "action": ("🔧", "行动"),
-    "observation": ("👀", "观察"),
-    "answer": ("✅", "最终答案"),
+    "thought": ("💭", "생각"),
+    "action": ("🔧", "행동"),
+    "observation": ("👀", "관찰"),
+    "answer": ("✅", "최종 답변"),
 }
 
 
 def format_trace_step(step: Dict[str, Any], max_len: int = 500) -> str:
-    """把一条 ReAct 轨迹步骤渲染成一行可读文本。
+    """하나의 ReAct 궤적 단계를 읽기 쉬운 한 줄 텍스트로 렌더링합니다.
 
-    这正是本章强调的“轨迹（trajectory）”——用户消息、模型思考、工具调用、
-    工具结果都被清晰地区分开来，让 ReAct 循环“想→做→看”一目了然。
+    본 챕터에서 강조하는 '궤적(Trajectory)'을 구성합니다. 사용자 메시지,
+    모델의 생각, 도구 호출, 도구 결과가 명확히 분리되어 ReAct 루프(생각→행동→관찰)를 직관적으로 보여줍니다.
     """
     icon, label = STEP_LABELS.get(step["type"], ("•", step["type"]))
     prefix = f"{icon} [{step.get('iteration', '-')}] {label}"
 
     if step["type"] == "action":
         args = json.dumps(step.get("args", {}), ensure_ascii=False)
-        return f"{prefix}: 调用工具 {step.get('tool')}  参数={args}"
+        return f"{prefix}: 도구 호출 {step.get('tool')}  인수={args}"
 
     content = str(step.get("content", "")).strip()
     if len(content) > max_len:
-        content = content[:max_len] + f"…（省略 {len(content) - max_len} 字）"
+        content = content[:max_len] + f"…(생략 {len(content) - max_len} 자)"
     return f"{prefix}: {content}"
 
 
 def search_impl(arguments: Dict[str, Any]) -> Any:
     """
-    When using the search tool provided by Moonshot AI, you just need to return the arguments as they are,
-    without any additional processing logic.
- 
-    But if you want to use other models and keep the internet search functionality, you just need to modify 
-    the implementation here (for example, calling search and fetching web page content), the function signature 
-    remains the same and still works.
- 
-    This ensures maximum compatibility, allowing you to switch between different models without making 
-    destructive changes to the code.
+    Moonshot AI가 제공하는 검색 도구를 사용할 때는 추가 처리 로직 없이 전달받은 인수를 그대로 반환합니다.
+
+    다른 모델을 사용하면서 인터넷 검색 기능을 유지하려면 이 구현부(예: 검색 API 호출 및 웹페이지 콘텐츠 가져오기)만 수정하면 되며,
+    함수 시그니처는 동일하게 유지되어 정상 작동합니다.
+
+    이를 통해 코드에 파괴적인 변경 없이 다양한 모델 간의 최대 호환성을 보장합니다.
     """
     return arguments
 
 
-# search_and_answer 不抛异常，而是以字符串形式返回失败兜底文案。
-# 下列前缀 / 文案是判断“一次搜索是否失败”的唯一来源，供调用方（如
-# examples.batch_search）复用，避免把失败响应误判为 success。
-SEARCH_ERROR_PREFIX = "搜索过程中出现错误"
-MAX_ITERATIONS_MESSAGE = "抱歉，搜索过程超过了最大迭代次数，请稍后重试。"
-NO_INFO_MESSAGE = "抱歉，我无法获取足够的信息来回答您的问题。"
+# search_and_answer는 예외를 던지지 않고 실패 시 대체 안내 문구를 문자열로 반환합니다.
+# 아래의 접두사/문구는 '검색 실패 여부'를 판정하는 유일한 기준이며, 호출처(예: examples.batch_search)에서 재사용됩니다.
+SEARCH_ERROR_PREFIX = "검색 과정 중 오류가 발생했습니다"
+MAX_ITERATIONS_MESSAGE = "죄송합니다. 검색 과정이 최대 반복 횟수를 초과했습니다. 잠시 후 다시 시도해 주세요."
+NO_INFO_MESSAGE = "죄송합니다. 질문에 답변하기에 충분한 정보를 얻지 못했습니다."
 
 
 def _error_hint(exc: Exception, timeout: Optional[float] = None) -> str:
@@ -96,7 +92,7 @@ def _error_hint(exc: Exception, timeout: Optional[float] = None) -> str:
 
 
 def is_failure_answer(answer: str) -> bool:
-    """判断 search_and_answer 的返回是否为失败兜底（未能正常作答）。"""
+    """search_and_answer의 반환값이 실패 대체 문구(정상 답변 생성 불가)인지 판정합니다."""
     return (
         answer.startswith(SEARCH_ERROR_PREFIX)
         or answer == MAX_ITERATIONS_MESSAGE
@@ -106,40 +102,40 @@ def is_failure_answer(answer: str) -> bool:
 
 class WebSearchAgent:
     """
-    Web Search Agent - 使用 Kimi Formula API 官方搜索工具。
+    Web Search Agent - Kimi Formula API 공식 검색 도구를 사용합니다.
 
-    kimi-k3 的当前官方路径是标准 ``function`` tool 声明加
-    ``moonshot/web-search:latest`` Formula Fiber 执行。
+    kimi-k3의 공식 경로는 표준 ``function`` tool 선언과
+    ``moonshot/web-search:latest`` Formula Fiber 실행을 조합하여 동작합니다.
     """
     
     def __init__(self, api_key: str = None, base_url: str = "https://api.moonshot.cn/v1",
                  model: str = "kimi-k3", verbose: bool = False):
         """
-        初始化 Agent
+        Agent를 초기화합니다.
 
         Args:
-            api_key: Kimi API key (如果不提供，从环境变量获取)
-            base_url: API 基础 URL
-            model: 使用的模型名称（默认 kimi-k3）
-            verbose: 是否实时打印 ReAct 轨迹（思考/行动/观察）
+            api_key: Kimi API key (제공되지 않으면 환경 변수에서 가져옴)
+            base_url: API 기본 URL
+            model: 사용할 모델 이름 (기본값: kimi-k3)
+            verbose: ReAct 궤적(생각/행동/관찰)을 실시간으로 출력할지 여부
         """
-        # 优先使用传入的 api_key，否则从环境变量获取
-        # Moonshot 为主，OpenRouter 为通用兜底（当 MOONSHOT_API_KEY 缺失时启用）
+        # 전달받은 api_key를 우선 사용하고, 없으면 환경 변수에서 로드
+        # Moonshot이 기본이며, MOONSHOT_API_KEY가 없을 경우 OpenRouter가 범용 폴백으로 작동
         from config import resolve_llm_backend, Config
         primary_key = api_key or os.environ.get("MOONSHOT_API_KEY") or os.environ.get("KIMI_API_KEY")
         resolved_key, resolved_base_url, model, self.using_openrouter = \
             resolve_llm_backend(primary_key, base_url, model)
         if self.using_openrouter:
             logger.info(
-                f"MOONSHOT_API_KEY 未设置，改用 OpenRouter 兜底（模型: {model}）。"
-                "注意：Moonshot Formula web_search 工具在 OpenRouter 上不可用，"
-                "此模式下模型将仅凭自身知识作答，不做实时联网搜索。"
+                f"MOONSHOT_API_KEY가 설정되지 않아 OpenRouter 폴백을 사용합니다 (모델: {model}). "
+                "주의: Moonshot Formula web_search 도구는 OpenRouter에서 사용할 수 없으므로, "
+                "이 모드에서는 실시간 웹 검색 없이 모델 자체 지식으로만 답변합니다."
             )
 
         self.client = OpenAI(
             api_key=resolved_key,
             base_url=resolved_base_url,
-            # 应用配置的搜索超时，避免后端挂起时请求默认阻塞约 10 分钟
+            # 설정된 검색 타임아웃을 적용하여 백엔드 지연 시 약 10분간 블로킹되는 문제를 방지
             timeout=Config.SEARCH_TIMEOUT,
         )
         self._api_key = resolved_key
@@ -147,7 +143,7 @@ class WebSearchAgent:
         self.model = model
         self.verbose = verbose
         self.conversation_history = []
-        # ReAct 轨迹：按顺序记录每一步的思考/行动/观察，便于展示与调试
+        # ReAct 궤적: 순서대로 각 단계의 생각/행동/관찰을 기록하여 디버깅 및 시각화에 사용
         self.trace: List[Dict[str, Any]] = []
         # Credential-free provider requests/responses for Experiment 1-2
         # acceptance.  Search IDs in tool arguments are intentionally retained:
@@ -157,17 +153,17 @@ class WebSearchAgent:
         self._formula_tools: Optional[List[Dict[str, Any]]] = None
         self._request_timeout = Config.SEARCH_TIMEOUT
         self.temperature = 0.6
-        # 推理模型（Kimi K3）需要充足的输出预算，避免最终答案被截断
+        # 추론 모델(Kimi K3)은 충분한 출력 토큰 예산이 필요하여 max_tokens를 넉넉히 설정
         self.max_tokens = 32768
 
     def _emit(self, step: Dict[str, Any]):
-        """记录一条 ReAct 轨迹步骤，并在 verbose 模式下实时打印。"""
+        """ReAct 궤적 단계를 기록하고, verbose 모드일 때 실시간으로 출력합니다."""
         self.trace.append(step)
         if self.verbose:
             print(format_trace_step(step))
         
     def _get_tools(self) -> List[Dict[str, Any]]:
-        """Fetch and cache Kimi's authoritative Formula declaration."""
+        """Kimi 공식 Formula 도구 선언을 가져오고 캐시합니다."""
         if getattr(self, "using_openrouter", False):
             return []
         if self._formula_tools is not None:
@@ -189,14 +185,14 @@ class WebSearchAgent:
             response.raise_for_status()
             tools = payload.get("tools")
             if not isinstance(tools, list) or not tools:
-                raise RuntimeError("Formula declaration response has no tools")
+                raise RuntimeError("Formula 선언 응답에 tools가 없습니다.")
             if not any(
                 tool.get("type") == "function"
                 and tool.get("function", {}).get("name") == "web_search"
                 for tool in tools
             ):
                 raise RuntimeError(
-                    "Formula declaration does not contain function web_search"
+                    "Formula 선언에 web_search 함수가 포함되어 있지 않습니다."
                 )
         except Exception as exc:
             error_payload: Dict[str, Any] = {
@@ -230,9 +226,9 @@ class WebSearchAgent:
         return tools
 
     def _execute_formula(self, name: str, raw_arguments: str) -> str:
-        """Execute one Kimi Formula Fiber exactly as the model requested."""
+        """모델이 요청한 Kimi Formula Fiber를 실행합니다."""
         if self.using_openrouter:
-            raise RuntimeError("Kimi Formula tools are unavailable on OpenRouter")
+            raise RuntimeError("OpenRouter에서는 Kimi Formula 도구를 사용할 수 없습니다.")
 
         url = (
             f"{self.base_url.rstrip('/')}/formulas/"
@@ -252,14 +248,14 @@ class WebSearchAgent:
             response.raise_for_status()
             if payload.get("status") != "succeeded":
                 raise RuntimeError(
-                    f"Formula Fiber did not succeed: {payload.get('status')!r}"
+                    f"Formula Fiber 실행이 성공하지 못했습니다: {payload.get('status')!r}"
                 )
             context = payload.get("context") or {}
             result = context.get("output")
             if result in (None, ""):
                 result = context.get("encrypted_output")
             if result in (None, ""):
-                raise RuntimeError("Succeeded Formula Fiber returned no output")
+                raise RuntimeError("성공한 Formula Fiber에서 결과가 반환되지 않았습니다.")
         except Exception as exc:
             error_payload: Dict[str, Any] = {
                 "class": type(exc).__name__,
@@ -298,44 +294,44 @@ class WebSearchAgent:
     
     def _get_system_prompt(self) -> str:
         """
-        获取系统提示
+        시스템 프롬프트를 반환합니다.
         """
-        return f"""你是 Kimi，一个智能搜索助手。
+        return f"""당신은 지능형 검색 어시스턴트 Kimi입니다.
 
-请按照以下步骤处理：
-1. 分析用户问题，识别关键信息需求
-2. 使用 web_search 官方工具搜索相关信息
-3. 如果需要更多信息，可以多次调用搜索工具
-4. 综合所有信息，生成准确、全面的答案
+다음 단계에 따라 문제를 해결하세요:
+1. 사용자의 질문을 분석하고 핵심 정보 요구사항을 식별합니다.
+2. web_search 공식 도구를 사용하여 관련 정보를 검색합니다.
+3. 추가 정보가 필요하면 검색 도구를 여러 번 호출할 수 있습니다.
+4. 모든 정보를 종합하여 정확하고 포괄적인 최종 답변을 생성합니다.
 
-注意：
-- 搜索时使用精准的关键词
-- 优先获取最新、最权威的信息
-- 答案要结构清晰，有理有据
+주의 사항:
+- 검색 시 정확한 키워드를 사용하세요.
+- 최신의 신뢰할 수 있는 정보를 우선적으로 수집하세요.
+- 답변은 구조가 명확하고 근거가 있어야 합니다.
 """
     
     def _chat(self, messages: List[Dict[str, Any]]) -> Choice:
         """
-        调用 Kimi API 进行对话
+        Kimi API를 호출하여 대화를 수행합니다.
         
         Args:
-            messages: 消息列表
+            messages: 메시지 목록
             
         Returns:
-            API 响应的 Choice 对象
+            API 응답의 Choice 객체
         """
         kwargs = dict(
             model=self.model,
             messages=messages,
             temperature=_reasoning_safe_temperature(self.model, self.temperature),
-            # Kimi K3 是推理模型，会先产出较长的 reasoning_content，需要给最终回答
-            # 留足输出预算（Moonshot 要求 max_tokens>=2048），否则答案可能被截断为空。
+            # Kimi K3는 추론 모델이므로 reasoning_content를 길게 생성하므로,
+            # 최종 답변이 잘리지 않도록 충분한 max_tokens 예산을 확보합니다.
             max_tokens=self.max_tokens,
         )
         if str(self.model).lower() == "kimi-k3":
             kwargs["reasoning_effort"] = "max"
         tools = self._get_tools()
-        if tools:  # OpenRouter 兜底时无内置搜索工具，省略 tools 参数
+        if tools:  # OpenRouter 폴백 시에는 내장 검색 도구가 없으므로 tools 매개변수를 생략
             kwargs["tools"] = tools
         started = time.monotonic()
         try:
@@ -363,56 +359,57 @@ class WebSearchAgent:
 
     def search_and_answer(self, user_question: str, max_iterations: int = 5) -> str:
         """
-        执行搜索并生成答案
+        검색을 수행하고 답변을 생성합니다.
         
         Args:
-            user_question: 用户问题
-            max_iterations: 最大搜索迭代次数（防止无限循环）
+            user_question: 사용자 질문
+            max_iterations: 최대 검색 반복 횟수 (무한 루프 방지)
             
         Returns:
-            最终答案
+            최종 답변 문자열
         """
-        # 构建系统提示
+        # 시스템 프롬프트 구성
         system_prompt = self._get_system_prompt()
         
-        # 重置对话历史并添加新的系统提示
+        # 대화 이력 재설정 및 새로운 시스템 프롬프트 추가
         self.conversation_history = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_question}
         ]
-        # 重置 ReAct 轨迹
+        # ReAct 궤적 초기화
         self.trace = []
         self.api_turns = []
         # Each independent question keeps its own real declaration receipt.
         self._formula_tools = None
-        logger.info("开始调用 Kimi 搜索工具...")
+        logger.info("Kimi 검색 도구 호출을 시작합니다...")
 
         try:
             finish_reason = None
             iteration = 0
             
-            # 循环处理，直到获得最终答案或达到最大迭代次数
+            # 최종 답변을 얻거나 최대 반복 횟수에 도달할 때까지 루프 실행
             while (finish_reason is None or finish_reason == "tool_calls") and iteration < max_iterations:
                 iteration += 1
-                logger.info(f"迭代 {iteration}/{max_iterations}")
+                logger.info(f"반복 {iteration}/{max_iterations}")
                 
-                # 调用 Kimi API
+                # Kimi API 호출
                 choice = self._chat(self.conversation_history)
                 finish_reason = choice.finish_reason
                 
-                # 捕获模型的思考过程（Kimi K3 等推理模型通过 reasoning_content 暴露思考模式）
+                # 모델의 사고 과정 캡처 (Kimi K3 등 추론 모델은 reasoning_content를 통해 사고 패턴 노출)
                 reasoning = getattr(choice.message, "reasoning_content", None)
                 if reasoning:
                     self._emit({"iteration": iteration, "type": "thought", "content": reasoning})
 
                 if finish_reason == "tool_calls":
-                    # 处理工具调用
-                    logger.info(f"模型请求调用 {len(choice.message.tool_calls)} 个工具")
+                    # 도구 호출 처리
+                    logger.info(f"모델이 {len(choice.message.tool_calls)}개의 도구 호출을 요청했습니다.")
 
-                    # 添加助手的消息（包含工具调用）到历史。
-                    # 注意：必须把消息重建为纯 dict，而不是直接塞入 SDK 返回的
-                    # pydantic message 对象——后者会附带 reasoning_content / refusal
-                    # 等额外字段，回传给 Moonshot 时会触发 "tokenization failed" 400 错误。
+                    # Add assistant message (including tool calls) to history.
+                    # NOTE: The message must be reconstructed into a plain dict, not
+                    # using the SDK's pydantic message object directly. The latter
+                    # carries extra fields like reasoning_content / refusal that cause
+                    # a "tokenization failed" 400 error when sent back to Moonshot.
                     self.conversation_history.append({
                         "role": "assistant",
                         "content": choice.message.content or "",
@@ -429,7 +426,7 @@ class WebSearchAgent:
                         ],
                     })
 
-                    # 执行每个工具调用
+                    # 각 도구 호출 실행
                     for tool_call in choice.message.tool_calls:
                         tool_call_name = tool_call.function.name
                         try:
@@ -441,12 +438,12 @@ class WebSearchAgent:
                             # chapter4 async-agent and keep the ReAct loop alive.
                             tool_call_arguments = {}
                             logger.warning(
-                                "工具参数不是合法 JSON，已按空对象继续: %r",
+                                "도구 인수가 올바른 JSON이 아닙니다. 빈 객체로 계속합니다: %r",
                                 tool_call.function.arguments,
                             )
 
-                        logger.info(f"执行工具: {tool_call_name}, 参数: {tool_call_arguments}")
-                        # 行动：记录一次工具调用
+                        logger.info(f"도구 실행: {tool_call_name}, 인수: {tool_call_arguments}")
+                        # 행동: 도구 호출 기록
                         self._emit({"iteration": iteration, "type": "action",
                                     "tool": tool_call_name, "args": tool_call_arguments})
 
@@ -466,39 +463,43 @@ class WebSearchAgent:
                             if isinstance(tool_result, str)
                             else json.dumps(tool_result, ensure_ascii=False)
                         )
-                        # 观察：记录工具返回结果
+                        # 관찰: 도구 반환 결과 기록
                         self._emit({"iteration": iteration, "type": "observation",
                                     "tool": tool_call_name, "content": tool_content})
-                        # 构建工具响应消息并添加到历史
+                        # 도구 응답 메시지를 구성하여 이력에 추가
                         self.conversation_history.append({
                             "role": "tool",
                             "tool_call_id": tool_call.id,
                             "content": tool_content
                         })
                 elif finish_reason == "length":
-                    # 输出预算（max_tokens）耗尽导致截断：返回已生成内容并明确标注，
-                    # 而不是把半截答案当作完整答案，也不误报“无法获取足够信息”
-                    # （content 为空时，思考过程已耗尽整个预算）。
+                    # Output budget (max_tokens) exhausted leading to truncation:
+                    # return the generated content with a clear note,
+                    # rather than treating a partial answer as complete,
+                    # or falsely reporting “no sufficient info” (content
+                    # being empty at this point means the thought process
+                    # already ate the whole budget).
                     partial = (choice.message.content or "").strip()
-                    logger.warning("回答因达到 max_tokens 上限被截断 (finish_reason=length)")
-                    note = "（注意：回答因达到 max_tokens 上限被截断，请增大 max_tokens 后重试。）"
+                    logger.warning("답변이 max_tokens 상한에 도달하여 잘렸습니다 (finish_reason=length)")
+                    note = "(주의: 답변이 max_tokens 상한에 도달하여 잘렸습니다. max_tokens를 늘린 후 다시 시도하세요.)"
                     final = f"{partial}\n\n{note}" if partial else note
                     self._emit({"iteration": iteration, "type": "answer", "content": final})
-                    # 存入历史时保留截断提示（final），否则 get_conversation_history()
-                    # 会丢失截断语义，后续复用历史时可能把不完整回答当作普通回答。
+                    # Store truncated answer in history with the note, so get_conversation_history()
+                    # preserves the truncation semantic; otherwise later reuse of the history
+                    # might treat the incomplete answer as ordinary/complete.
                     self.conversation_history.append({
                         "role": "assistant",
                         "content": final
                     })
                     return final
                 else:
-                    # 获得最终答案
+                    # 최종 답변 획득
                     if choice.message.content:
                         answer = choice.message.content
-                        logger.info("成功生成答案")
+                        logger.info("답변이 성공적으로 생성되었습니다.")
                         self._emit({"iteration": iteration, "type": "answer", "content": answer})
 
-                        # 添加最终答案到历史
+                        # 최종 답변을 이력에 추가
                         self.conversation_history.append({
                             "role": "assistant",
                             "content": answer
@@ -506,9 +507,9 @@ class WebSearchAgent:
 
                         return answer
             
-            # 如果达到最大迭代次数仍未完成
+            # 최대 반복 횟수에 도달했음에도 완료되지 않은 경우
             if iteration >= max_iterations:
-                logger.warning(f"达到最大迭代次数 {max_iterations}")
+                logger.warning(f"최대 반복 횟수 {max_iterations}에 도달했습니다.")
                 return MAX_ITERATIONS_MESSAGE
 
             return NO_INFO_MESSAGE
@@ -520,68 +521,62 @@ class WebSearchAgent:
             return message
     
     def clear_history(self):
-        """清空对话历史"""
+        """대화 이력을 초기화합니다."""
         self.conversation_history = []
-        logger.info("对话历史已清空")
+        logger.info("대화 이력이 초기화되었습니다.")
     
     def get_conversation_history(self) -> List[Dict[str, str]]:
-        """获取对话历史"""
+        """대화 이력을 반환합니다."""
         return self.conversation_history
 
     def get_trace(self) -> List[Dict[str, Any]]:
-        """获取上一次 search_and_answer 的 ReAct 轨迹（思考/行动/观察/最终答案）"""
+        """가장 최근 search_and_answer의 ReAct 궤적(생각/행동/관찰/최종 답변)을 반환합니다."""
         return self.trace
 
     def get_api_turns(self) -> List[Dict[str, Any]]:
-        """Return detached real-provider evidence for the latest question."""
+        """최근 질문에 대한 실제 제공자 API 증거를 반환합니다."""
         return json.loads(json.dumps(self.api_turns, ensure_ascii=False, default=str))
     
     def set_temperature(self, temperature: float):
         """
-        设置温度参数
+        온도(temperature) 파라미터를 설정합니다.
         
         Args:
-            temperature: 温度值 (0.0 - 2.0)
+            temperature: 온도 값 (0.0 - 2.0)
         """
         if 0.0 <= temperature <= 2.0:
             self.temperature = temperature
-            logger.info(f"温度设置为: {temperature}")
+            logger.info(f"온도가 {temperature}(으)로 설정되었습니다.")
         else:
-            logger.warning(f"无效的温度值: {temperature}，应在 0.0 到 2.0 之间")
+            logger.warning(f"유효하지 않은 온도 값입니다: {temperature} (0.0에서 2.0 사이여야 함)")
 
 
-def run_offline_demo(question: str = "Moonshot AI 的 Context Caching 是什么技术？",
+def run_offline_demo(question: str = "Moonshot AI의 Context Caching 기술이란 무엇인가요?",
                      verbose: bool = True) -> Dict[str, Any]:
-    """离线演示 ReAct 循环——无需 API Key 或联网。
+    """오프라인 ReAct 루프 시연 —— API Key나 인터넷 연결이 필요 없습니다.
 
-    本函数**不调用真实搜索**，而是回放一段“示例轨迹”，用来直观展示本章讲的
-    “想→做→看→想→做→看”循环：模型先思考，再调用 web_search 行动，观察结果后
-    继续思考，最终综合出答案。轨迹内容仅为教学示例，不代表真实搜索返回。
+    본 함수는 **실제 검색을 호출하지 않고** 샘플 궤적을 재생하여,
+    본 챕터에서 설명하는 '생각→행동→관찰→생각→행동→관찰' 루프를 직관적으로 보여줍니다.
+    궤적 내용은 교육용 예시이며 실제 검색 결과가 아닙니다.
 
     Returns:
-        包含 question / trace / answer 的字典。
+        question / trace / answer를 포함하는 딕셔너리.
     """
     trace: List[Dict[str, Any]] = [
         {"iteration": 1, "type": "thought",
-         "content": "用户想了解 Context Caching。这是 Moonshot 的特性，我需要先搜索官方说明，确认它的定义和作用。"},
+         "content": "사용자가 Context Caching에 대해 알고 싶어 합니다. 이는 Moonshot의 기능이므로 먼저 공식 문서를 검색하여 정의와 역할을 확인하겠습니다."},
         {"iteration": 1, "type": "action", "tool": "web_search",
-         "args": {"query": "Moonshot AI Context Caching 是什么"}},
+         "args": {"query": "Moonshot AI Context Caching 기술이란"}},
         {"iteration": 1, "type": "observation", "tool": "web_search",
-         "content": "（示例结果）Context Caching 是一种上下文缓存机制：把重复使用的前缀"
-                    "（如长系统提示、文档）缓存在服务端，后续请求命中缓存即可复用，"
-                    "从而降低重复计算与费用。"},
+         "content": "(샘플 결과) Context Caching은 컨텍스트 캐싱 메커니즘입니다. 반복적으로 사용되는 접두사(예: 긴 시스템 프롬프트, 문서)를 서버 측에 캐시하여 후속 요청 시 재사용함으로써 중복 연산과 비용을 줄입니다."},
         {"iteration": 2, "type": "thought",
-         "content": "已知大致定义，但还缺少适用场景。再搜一次它的典型用途以便答得更完整。"},
+         "content": "대략적인 정의를 확인했으나 구체적인 활용 시나리오가 부족합니다. 보다 완성도 높은 답변을 위해 일반적인 용도와 과금 방식을 한 번 더 검색하겠습니다."},
         {"iteration": 2, "type": "action", "tool": "web_search",
-         "args": {"query": "Context Caching 适用场景 计费"}},
+         "args": {"query": "Context Caching 활용 시나리오 요금"}},
         {"iteration": 2, "type": "observation", "tool": "web_search",
-         "content": "（示例结果）常见于多轮对话、长文档反复问答、固定系统提示等场景；"
-                    "命中缓存的 token 通常按更低价格计费，并能显著降低首字延迟。"},
+         "content": "(샘플 결과) 다중 턴 대화, 긴 문서에 대한 반복 질문, 고정된 시스템 프롬프트 등의 시나리오에 주로 활용됩니다. 캐시가 적중된 토큰은 일반적으로 더 저렴한 가격이 적용되며 첫 토큰 지연 시간(TTFT)을 크게 단축합니다."},
         {"iteration": 3, "type": "answer",
-         "content": "Context Caching（上下文缓存）是 Moonshot AI 提供的一种机制：将重复使用的"
-                    "上下文前缀缓存在服务端，后续请求复用缓存内容，从而降低重复计算、减少费用、"
-                    "并加快响应。它特别适合长系统提示、长文档反复问答、多轮对话等场景。"
-                    "（本段来自离线示例轨迹，非真实搜索结果。）"},
+         "content": "Context Caching(컨텍스트 캐싱)은 Moonshot AI가 제공하는 메커니즘입니다. 반복 사용되는 컨텍스트 접두사를 서버 측에 캐시하여 후속 요청 시 재사용함으로써 중복 연산을 줄이고 비용을 절감하며 응답 속도를 향상시킵니다. 긴 시스템 프롬프트, 긴 문서 반복 질의응답, 다중 턴 대화 등의 시나리오에 매우 적합합니다. (이 내용은 오프라인 샘플 궤적이며 실제 검색 결과가 아닙니다.)"},
     ]
 
     if verbose:
@@ -592,25 +587,25 @@ def run_offline_demo(question: str = "Moonshot AI 的 Context Caching 是什么�
     return {"question": question, "trace": trace, "answer": answer}
 
 
-# 独立运行示例
+# Independent running example
+
 def main():
     """
-    独立运行示例，演示基本用法
+    기본 사용법을 시연하는 독립 실행 예제
     """
-    # 设置 API key (确保已设置环境变量 MOONSHOT_API_KEY)
+    # Set API key (ensure MOONSHOT_API_KEY environment variable is set)
     agent = WebSearchAgent()
     
-    # 示例问题
-    test_question = "请搜索 Moonshot AI Context Caching 技术，告诉我这是什么。"
+    test_question = "Moonshot AI의 Context Caching 기술에 대해 검색하고 이것이 무엇인지 알려주세요."
     
-    print(f"问题: {test_question}")
+    print(f"질문: {test_question}")
     print("-" * 60)
-    print("搜索中...")
+    print("검색 중...")
     
-    # 获取答案
+    # Get answer
     answer = agent.search_and_answer(test_question)
     
-    print("\n答案:")
+    print("\n답변:")
     print("-" * 60)
     print(answer)
 
