@@ -1,8 +1,9 @@
 """
-主程序 - Web Search Agent 使用示例
+메인 프로그램 - Web Search Agent 사용 예제
 
-演示第一章的 ReAct 循环（Reasoning + Acting）：模型先思考，再调用 web_search
-行动，观察搜索结果后继续思考，直到综合出最终答案。运行时会逐步打印 ReAct 轨迹。
+제1장의 ReAct 루프(Reasoning + Acting)를 시연합니다: 모델이 먼저 생각(Reasoning)하고,
+web_search를 호출하여 행동(Action)하며, 검색 결과를 관찰(Observation)한 후 다시 생각하여
+최종 답변을 종합할 때까지 반복합니다. 실행 시 ReAct 궤적이 단계별로 출력됩니다.
 """
 
 import os
@@ -14,7 +15,7 @@ from typing import Optional
 from agent import WebSearchAgent, run_offline_demo
 from config import Config
 
-# 设置日志
+# 로깅 설정
 logging.basicConfig(
     level=getattr(logging, Config.LOG_LEVEL),
     format=Config.LOG_FORMAT
@@ -23,10 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 def _save_output(path: str, payload: dict):
-    """把问题、ReAct 轨迹和答案保存为 JSON 文件"""
+    """질문, ReAct 궤적, 답변을 JSON 파일로 저장합니다."""
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
-    print(f"\n💾 结果已保存到: {path}")
+    print(f"\n💾 결과가 저장되었습니다: {path}")
 
 
 def run_interactive_mode(agent: WebSearchAgent, output: Optional[str] = None):
@@ -34,11 +35,11 @@ def run_interactive_mode(agent: WebSearchAgent, output: Optional[str] = None):
     交互式模式 - 每次提问独立（search_and_answer 会重置对话历史，无跨问题上下文）
 
     Args:
-        agent: WebSearchAgent 实例
-        output: 可选，保存每次问答轨迹的 JSON 文件路径
+        agent: WebSearchAgent 인스턴스
+        output: 선택 사항, 각 Q&A 궤적을 저장할 JSON 파일 경로
     """
     print("\n" + "="*60)
-    print("🤖 Kimi Web Search Agent - 交互模式")
+    print("🤖 Kimi Web Search Agent - 대화형 모드")
     print("="*60)
     print("输入您的问题，Agent 将自动搜索并回答")
     print("输入 'quit' 或 'exit' 退出")
@@ -46,34 +47,34 @@ def run_interactive_mode(agent: WebSearchAgent, output: Optional[str] = None):
 
     while True:
         try:
-            # 获取用户输入
-            user_input = input("您的问题: ").strip()
+            # 사용자 입력 받기
+            user_input = input("질문: ").strip()
 
-            # 检查退出命令
+            # 종료 명령 확인
             if user_input.lower() in ['quit', 'exit', 'q']:
-                print("\n👋 再见！")
+                print("\n👋 종료합니다. 안녕히 가세요!")
                 break
 
-            # 检查清空命令
+            # 이력 초기화 확인
             if user_input.lower() == 'clear':
                 agent.clear_history()
-                print("✅ 对话历史已清空\n")
+                print("✅ 대화 이력이 초기화되었습니다.\n")
                 continue
 
-            # 检查空输入
+            # 빈 입력 확인
             if not user_input:
-                print("❌ 请输入一个问题\n")
+                print("❌ 질문을 입력해 주세요.\n")
                 continue
 
-            # 显示思考中
-            print("\n🔍 Agent 正在搜索和思考（ReAct 轨迹如下）...\n")
+            # 검색 및 생각 중 표시
+            print("\n🔍 Agent가 검색 및 생각 중입니다 (ReAct 궤적):\n")
 
-            # 获取答案（verbose=True 时轨迹已在 agent 内实时打印）
+            # 답변 가져오기 (verbose=True일 때 궤적이 agent 내부에서 실시간 출력됨)
             answer = agent.search_and_answer(user_input, max_iterations=Config.MAX_SEARCH_ITERATIONS)
 
-            # 显示答案
+            # 답변 출력
             print("\n" + "="*60)
-            print("📝 Agent 回答:")
+            print("📝 Agent 답변:")
             print("-"*60)
             print(answer)
             print("="*60 + "\n")
@@ -88,34 +89,34 @@ def run_interactive_mode(agent: WebSearchAgent, output: Optional[str] = None):
                                       "base_url": agent.base_url})
 
         except KeyboardInterrupt:
-            print("\n\n👋 检测到中断，退出程序")
+            print("\n\n👋 인터럽트가 감지되어 프로그램을 종료합니다.")
             break
         except Exception as e:
-            logger.error(f"处理问题时出错: {str(e)}")
-            print(f"\n❌ 出错了: {str(e)}\n")
+            logger.error(f"질문 처리 중 오류 발생: {str(e)}")
+            print(f"\n❌ 오류가 발생했습니다: {str(e)}\n")
 
 
 def run_single_question(agent: WebSearchAgent, question: str,
                         max_iterations: int, output: Optional[str] = None):
     """
-    单个问题模式 - 回答一个问题后退出
+    단일 질문 모드 - 하나의 질문에 답변한 후 종료합니다.
 
     Args:
-        agent: WebSearchAgent 实例
-        question: 要回答的问题
-        max_iterations: 最大 ReAct 迭代次数
-        output: 可选，保存轨迹的 JSON 文件路径
+        agent: WebSearchAgent 인스턴스
+        question: 답변할 질문
+        max_iterations: 최대 ReAct 반복 횟수
+        output: 선택 사항, 궤적을 저장할 JSON 파일 경로
     """
     print("\n" + "="*60)
     print("🤖 Kimi Web Search Agent")
     print("="*60)
-    print(f"问题: {question}")
+    print(f"질문: {question}")
     print("-"*60)
-    print("🔍 ReAct 轨迹（想 → 做 → 看）:\n")
+    print("🔍 ReAct 궤적 (생각 → 행동 → 관찰):\n")
 
     try:
         answer = agent.search_and_answer(question, max_iterations=max_iterations)
-        print("\n📝 答案:")
+        print("\n📝 최종 답변:")
         print("-"*60)
         print(answer)
         print("="*60 + "\n")
@@ -129,60 +130,60 @@ def run_single_question(agent: WebSearchAgent, question: str,
                                   "model": agent.model,
                                   "base_url": agent.base_url})
     except Exception as e:
-        logger.error(f"处理问题时出错: {str(e)}")
-        print(f"\n❌ 出错了: {str(e)}\n")
+        logger.error(f"질문 처리 중 오류 발생: {str(e)}")
+        print(f"\n❌ 오류가 발생했습니다: {str(e)}\n")
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """构建命令行参数解析器（中文帮助）"""
+    """명령줄 인수 파서 구성 (한국어 도움말)"""
     parser = argparse.ArgumentParser(
         prog="main.py",
-        description="Kimi Web Search Agent —— 演示 ReAct 循环（思考→行动→观察）的搜索 Agent。",
+        description="Kimi Web Search Agent —— ReAct 루프(생각 → 행동 → 관찰)를 시연하는 자율 검색 에이전트.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""示例:
-  python main.py                                  # 进入交互模式
-  python main.py "2024 诺贝尔物理学奖得主是谁？"    # 单次问答，打印 ReAct 轨迹
-  python main.py --provider offline-demo          # 离线演示 ReAct 循环（无需 API Key）
-  python main.py "比特币现价" --max-steps 3 --output result.json
+        epilog="""사용 예시:
+  python main.py                                  # 대화형 모드 진입
+  python main.py "2024년 노벨 물리학상 수상자는 누구인가요?"    # 단일 질문 실행 (ReAct 궤적 출력)
+  python main.py --provider offline-demo          # 오프라인 ReAct 루프 데모 (API Key 불필요)
+  python main.py "비트코인 현재가" --max-steps 3 --output result.json
 """,
     )
     parser.add_argument("query", nargs="*",
-                        help="要提问的问题；省略则进入交互模式")
+                        help="질문 내용 (생략 시 대화형 모드로 진입)")
     parser.add_argument("--provider", choices=["kimi", "offline-demo"], default="kimi",
-                        help="搜索后端：kimi=调用 Kimi Formula web_search（需 API Key）；"
-                             "offline-demo=离线回放示例轨迹（默认 kimi）")
+                        help="검색 백엔드: kimi=Kimi Formula web_search 호출 (API Key 필요); "
+                             "offline-demo=샘플 궤적 오프라인 재생 (기본값: kimi)")
     parser.add_argument("--model", default=Config.DEFAULT_MODEL,
-                        help=f"使用的模型名称（默认 {Config.DEFAULT_MODEL}）")
+                        help=f"사용할 모델 이름 (기본값: {Config.DEFAULT_MODEL})")
     parser.add_argument("--max-steps", type=int, default=Config.MAX_SEARCH_ITERATIONS,
-                        help=f"最大 ReAct 迭代次数（默认 {Config.MAX_SEARCH_ITERATIONS}）")
+                        help=f"최대 ReAct 반복 횟수 (기본값: {Config.MAX_SEARCH_ITERATIONS})")
     parser.add_argument("--base-url", default=Config.KIMI_BASE_URL,
-                        help=f"API 基础 URL（默认 {Config.KIMI_BASE_URL}）")
+                        help=f"API 기본 URL (기본값: {Config.KIMI_BASE_URL})")
     parser.add_argument("--api-key", default=None,
-                        help="Kimi API Key（默认从 MOONSHOT_API_KEY / KIMI_API_KEY 环境变量读取）")
+                        help="Kimi API Key (기본값: MOONSHOT_API_KEY / KIMI_API_KEY 환경 변수에서 로드)")
     parser.add_argument("--output", "-o", default=None,
-                        help="将问题、ReAct 轨迹和答案保存到指定 JSON 文件")
+                        help="질문, ReAct 궤적, 답변을 지정된 JSON 파일로 저장")
     parser.add_argument("--quiet", action="store_true",
-                        help="不实时打印 ReAct 轨迹（默认打印）")
+                        help="ReAct 궤적을 실시간으로 출력하지 않음 (기본값: 실시간 출력)")
     return parser
 
 
 def main(argv: Optional[list] = None):
-    """主函数：解析命令行参数并分发到相应模式"""
+    """메인 함수: 명령줄 인수를 파싱하고 해당 모드를 실행합니다."""
     parser = build_parser()
     args = parser.parse_args(argv)
     question = " ".join(args.query).strip()
 
-    # 离线演示模式：无需 API Key，回放示例轨迹展示 ReAct 循环
+    # 오프라인 데모 모드: API Key 없이 샘플 궤적을 재생하여 ReAct 루프를 시연
     if args.provider == "offline-demo":
-        demo_question = question or "Moonshot AI 的 Context Caching 是什么技术？"
+        demo_question = question or "Moonshot AI의 Context Caching 기술이란 무엇인가요?"
         print("\n" + "="*60)
-        print("🧪 离线演示模式（示例轨迹，非真实搜索结果）")
+        print("🧪 오프라인 데모 모드 (샘플 궤적, 실제 검색 결과 아님)")
         print("="*60)
-        print(f"问题: {demo_question}")
+        print(f"질문: {demo_question}")
         print("-"*60)
-        print("🔍 ReAct 轨迹（想 → 做 → 看）:\n")
+        print("🔍 ReAct 궤적 (생각 → 행동 → 관찰):\n")
         result = run_offline_demo(demo_question, verbose=not args.quiet)
-        print("\n📝 答案:")
+        print("\n📝 답변:")
         print("-"*60)
         print(result["answer"])
         print("="*60 + "\n")
@@ -190,14 +191,14 @@ def main(argv: Optional[list] = None):
             _save_output(args.output, result)
         return
 
-    # 在线模式：需要 API Key
+    # 온라인 모드: API Key 필요
     api_key = Config.get_api_key(args.api_key)
     if not api_key and not os.getenv("OPENROUTER_API_KEY"):
         Config.validate()
-        print("提示：也可设置 OPENROUTER_API_KEY 作为通用兜底。")
+        print("안내: 범용 폴백을 위해 OPENROUTER_API_KEY를 설정할 수도 있습니다.")
         sys.exit(1)
 
-    # 创建 Agent
+    # Agent 생성
     try:
         agent = WebSearchAgent(
             api_key=api_key,
@@ -205,12 +206,12 @@ def main(argv: Optional[list] = None):
             model=args.model,
             verbose=not args.quiet,
         )
-        logger.info("Agent 初始化成功")
+        logger.info("Agent 초기화 성공")
     except Exception as e:
-        logger.error(f"Agent 初始化失败: {str(e)}")
+        logger.error(f"Agent 초기화 실패: {str(e)}")
         sys.exit(1)
 
-    # 有问题则单次问答，否则进入交互模式
+    # 질문이 있으면 단일 질의응답, 없으면 대화형 모드 진입
     if question:
         run_single_question(agent, question, args.max_steps, args.output)
     else:
