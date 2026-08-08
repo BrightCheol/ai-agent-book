@@ -127,7 +127,9 @@ def map_model_to_openrouter(model: str, *, substitute_unknown: bool = False) -> 
     if ml.startswith("gemini"):
         return "google/" + m
     if ml.startswith("kimi"):
-        return "moonshotai/kimi-k2.6"
+        if env_override:
+            return env_override
+        return "moonshotai/" + m
     if ml.startswith("deepseek"):
         return "deepseek/" + m
     if ml.startswith("qwen"):
